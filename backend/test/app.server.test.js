@@ -1,42 +1,53 @@
-const assert = require("assert");
-const { expect } = require("chai");
 const request = require("supertest");
+
 const app = require("../app/app.server");
 
-describe("Unit testing the / route", () => {
-  it("should return OK status", () => request(app)
-    .get("/")
-    .then((response) => {
-      assert.equal(response.status, 200);
-    }));
+describe("app.server.js", () => {
+  describe("GET /", () => {
+    it("responds with OK http status code", done => {
+      request(app)
+        .get("/")
+        .expect(200, done);
+    });
 
-  it("should there is googleapi on rendering", () => request(app)
-    .get("/")
-    .then((response) => {
-      expect(response.text).to.contain(
-        "<script src=\"https://apis.google.com/js/platform.js\"></script>",
-      );
-    }));
+    describe("when rendering", () => {
+      it("returns the googleapi tag", () => {
+        request(app)
+          .get("/")
+          .then(res => {
+            expect(res.text).toMatch(
+              /<script src="https:\/\/apis.google.com\/js\/platform.js"><\/script>/
+            );
+          });
+      });
 
-  it("should there is <meta> google-signin-client_id on rendering", () => request(app)
-    .get("/")
-    .then((response) => {
-      expect(response.text).to.contain(
-        "<meta name=\"google-signin-client_id\" content=\"\">",
-      );
-    }));
+      it("returns <meta> google-signin-client_id", () => {
+        request(app)
+          .get("/")
+          .then(res => {
+            expect(res.text).toMatch(
+              /<meta name="google-signin-client_id" content="">/
+            );
+          });
+      });
 
-  it("should there is an element with id='application' to render react app", () => request(app)
-    .get("/")
-    .then((response) => {
-      expect(response.text).to.contain("<div id=\"application\"></div>");
-    }));
+      it("returns the element to render react app", () => {
+        request(app)
+          .get("/")
+          .then(res => {
+            expect(res.text).toMatch(/<div id="application"><\/div>/);
+          });
+      });
 
-  it("should there is login.js on rendering", () => request(app)
-    .get("/")
-    .then((response) => {
-      expect(response.text).to.match(
-        /<script src="\/dist\/login-.[a-z0-9]+\.js"><\/script>/,
-      );
-    }));
+      it("returns script tag calling login.js", () => {
+        request(app)
+          .get("/")
+          .then(res => {
+            expect(res.text).toMatch(
+              /<script src="\/dist\/login(-.[a-z0-9]+)?\.js"><\/script>/
+            );
+          });
+      });
+    });
+  });
 });
